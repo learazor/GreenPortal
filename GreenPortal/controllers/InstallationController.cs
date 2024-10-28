@@ -1,3 +1,5 @@
+using System.Net.Sockets;
+using System.Text;
 using GreenPortal.model;
 using GreenPortal.repository;
 
@@ -34,14 +36,13 @@ public class InstallationController : ControllerBase
 
         if (companyInstallation != null)
         {
+            //CalculatePrice(companyInstallation.PricePerUnit)
             var offer = new InstallationOffer(companyInstallation.CompanyCode, CalculatePrice(companyInstallation.PricePerUnit),
                 companyInstallation.SettingUpTimePerUnit, companyInstallation.Output);
 
             return Ok(offer);
         }
-
         return NotFound("No installations found for the specified type.");
-
     }
     
     [HttpGet("companyinfo")]
@@ -59,29 +60,29 @@ public class InstallationController : ControllerBase
 
     private async Task<double> CalculateDistance()
     {
-        // Define the request parameters
-        string country1 = "USA";
-        string postalCode1 = "10001";
-        string country2 = "Canada";
-        string postalCode2 = "H2X 1X4";
-
-        // Create the HttpClient instance
-        using var httpClient = new HttpClient();
-
-        // Build the request URI with query parameters
-        var requestUri = $"http://localhost:5000/api/distance?country1={country1}&postalCode1={postalCode1}&country2={country2}&postalCode2={postalCode2}";
-
-        // Send the POST request
-        var response = await httpClient.PostAsync(requestUri, null);
-
-        // Output the response
-        if (response.IsSuccessStatusCode)
-        {
-            string responseBody = await response.Content.ReadAsStringAsync();
-            Console.WriteLine("Request successful:");
-            Console.WriteLine(responseBody);
-            return double.Parse(responseBody);
-        }
-        throw new HttpRequestException($"Request failed with status code {response.StatusCode}");
+                using (var client = new TcpClient())
+                {
+                    Console.WriteLine("Connecting to server...");
+                    await client.ConnectAsync("127.0.0.1", 5001);
+                    Console.WriteLine("Connected to server.");
+        
+                    using (var networkStream = client.GetStream())
+                    {
+                        //format: "Country1|PostalCode1|Country2|PostalCode2"
+                        string message = "Netherlands|1001|Denmark|8700";
+                        byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+                        
+                        await networkStream.WriteAsync(messageBytes, 0, messageBytes.Length);
+                        Console.WriteLine("Message sent.");
+                        
+                        byte[] buffer = new byte[1024];
+                        int bytesRead = await networkStream.ReadAsync(buffer, 0, buffer.Length);
+                        string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+        
+                        Console.WriteLine("Response from server:");
+                        Console.WriteLine(response);
+                        return Double.Parse(response);
+                    }
+                }
     }
 }

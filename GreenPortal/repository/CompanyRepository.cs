@@ -1,4 +1,3 @@
-using GreenPortal.db;
 using GreenPortal.model;
 
 namespace GreenPortal.repository;
@@ -9,13 +8,8 @@ using System.Threading.Tasks;
 
 public class CompanyRepository
 {
-    private readonly CompanyDbContext _context;
-    private readonly string _connectionString;
-
-    public CompanyRepository(CompanyDbContext context)
-    {
-        _connectionString = "Host=abstractly-awake-ouzel.data-1.euc1.tembo.io;Database=postgres;Username=postgres;Password=AQm5ISoHY3fjnw67;Port=5432";
-    }
+    private readonly string _connectionString = "Host=abstractly-awake-ouzel.data-1.euc1.tembo.io;Database=postgres;Username=postgres;Password=AQm5ISoHY3fjnw67;Port=5432";
+    
 
     public async Task<List<CompanyInstallation>> GetInstallationsByType(string type)
     {
@@ -78,9 +72,6 @@ public class CompanyRepository
                 }
             }
         }
-
         return companyInfoList;
     }
-    
-    
 }
