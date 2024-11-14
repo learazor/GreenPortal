@@ -30,15 +30,15 @@ public class InstallationController : ControllerBase
             return NotFound("No installations found for the specified type.");
         }
 
-        CompanyInstallation? companyInstallation = installations.Find(i => i.Type == request.Type);
+        CompanyInstallation? companyInstallation = installations.Find(i => i.type == request.Type); //Return only one e.g. try to use Single here
         // Simulate an offer calculation based on the retrieved data
         
 
         if (companyInstallation != null)
         {
             //CalculatePrice(companyInstallation.PricePerUnit)
-            var offer = new InstallationOffer(companyInstallation.CompanyCode, CalculatePrice(companyInstallation.PricePerUnit),
-                companyInstallation.SettingUpTimePerUnit, companyInstallation.Output);
+            var offer = new InstallationOffer(companyInstallation.company_code, CalculatePrice(companyInstallation.price_per_unit),
+                companyInstallation.setting_up_time_per_unit, companyInstallation.output);
 
             return Ok(offer);
         }
@@ -69,7 +69,7 @@ public class InstallationController : ControllerBase
                     using (var networkStream = client.GetStream())
                     {
                         //format: "Country1|PostalCode1|Country2|PostalCode2"
-                        string message = "Netherlands|1001|Denmark|8700";
+                        string message = "Netherlands|3067|Denmark|8700";
                         byte[] messageBytes = Encoding.UTF8.GetBytes(message);
                         
                         await networkStream.WriteAsync(messageBytes, 0, messageBytes.Length);
