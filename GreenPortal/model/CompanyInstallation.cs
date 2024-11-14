@@ -1,18 +1,13 @@
-namespace GreenPortal.model;
-
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-[Table("CompanyInstallation")]
-public class CompanyInstallation
+namespace GreenPortal.model
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { get; set; }
-    
-    public string Type { get; set; }
-    public double Output { get; set; }
-    public int SettingUpTimePerUnit { get; set; }
-    public double PricePerUnit { get; set; }
-    public string CompanyCode { get; set; }
+    public class CompanyInstallation
+    {
+        // Composite Key
+        public string type { get; set; }
+        public string company_code { get; set; }
+        
+        public double output { get; set; }
+        public int setting_up_time_per_unit { get; set; }
+        public double price_per_unit { get; set; }
+    }
 }
