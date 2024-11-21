@@ -15,7 +15,7 @@ namespace GreenPortal.repository
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Configure composite primary key for CompanyInstallation
+            // Configure composite primary key for CompanyInstallation extra comment here
             modelBuilder.Entity<CompanyInstallation>()
                 .HasKey(ci => new { ci.type, ci.company_code});
 
