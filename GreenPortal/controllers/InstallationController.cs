@@ -1,14 +1,16 @@
+using System.Globalization;
 using System.Net.Sockets;
 using System.Text;
 using GreenPortal.model;
 using GreenPortal.repository;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 
 namespace GreenPortal.controllers;
 
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("api/portal")]
+[Route("portal")]
 public class InstallationController : ControllerBase
 {
     
@@ -20,9 +22,8 @@ public class InstallationController : ControllerBase
     }
     
     [HttpPost("offer")]
-    public async Task<ActionResult<InstallationOffer>> GetInstallationOffer([FromBody] ClientRequest request)
+    public async Task<ActionResult<InstallationOffer>> PrepareInstallationOffers([FromBody] ClientRequest request)
     {
-        
         var installations = await _repository.GetInstallationsByType(request.Type);
 
         if (installations == null || installations.Count == 0)
@@ -30,17 +31,40 @@ public class InstallationController : ControllerBase
             return NotFound("No installations found for the specified type.");
         }
 
-        CompanyInstallation? companyInstallation = installations.Find(i => i.type == request.Type); //Return only one e.g. try to use Single here
-        // Simulate an offer calculation based on the retrieved data
+        List<CompanyInstallation> companyInstallations = installations
+            .Where(i => i.type == request.Type)
+            .Where(i => i.price_per_unit <= request.MaxPrice) //MaxPrice without transportation cost
+            .Where(i => i.setting_up_time_per_unit <= request.MaxTime)
+            .ToList();
+        
         
 
-        if (companyInstallation != null)
+        if (!companyInstallations.Count.Equals(0))
         {
-            //CalculatePrice(companyInstallation.PricePerUnit)
-            var offer = new InstallationOffer(companyInstallation.company_code, CalculatePrice(companyInstallation.price_per_unit),
-                companyInstallation.setting_up_time_per_unit, companyInstallation.output);
+            List<InstallationOffer> installationOffers = new List<InstallationOffer>();
+            foreach (var installation in companyInstallations)
+            {
+                var companyInfo = await _repository.GetCompanyInfo(installation.company_code);
 
-            return Ok(offer);
+                var maxUnitsInPriceRange = request.MaxPrice/installation.price_per_unit;
+                var maxUnitsInTimeRange = request.MaxTime/installation.setting_up_time_per_unit;
+                var unitsNeededForRequestedOutput = request.MinOutput/installation.output;
+
+                double? smallestUnitNumber =
+                    new[] { maxUnitsInPriceRange, maxUnitsInTimeRange, unitsNeededForRequestedOutput }.Min();
+                
+                var noOfUnits = (int)Math.Floor((double)smallestUnitNumber); //For now picking just the smallest possible limit 
+                
+                var calculatedPrice = CalculatePrice(installation.price_per_unit, request.PostalCode,
+                    request.Country, companyInfo.postal_code, companyInfo.country, companyInfo.price_per_distance_unit,
+                    noOfUnits);
+                var offer = new InstallationOffer(installation.company_code, calculatedPrice,
+                    installation.setting_up_time_per_unit, installation.output);
+                
+                installationOffers.Add(offer);
+            }
+            
+            return Ok(installationOffers);
         }
         return NotFound("No installations found for the specified type.");
     }
@@ -52,13 +76,14 @@ public class InstallationController : ControllerBase
         return Ok(companyInfoList);
     }
 
-    private double CalculatePrice(double pricePerUnit)
+    private double CalculatePrice(double pricePerUnit, string clientPostalCode, string clientCountry,
+        string companyPostalCode, string companyCountry, double pricePerDistanceUnit, double noOfUnits)
     {
-        double distance = CalculateDistance().Result;
-        return pricePerUnit + pricePerUnit * 12 * distance;
+        var distance = CalculateDistance(clientPostalCode, clientCountry, companyPostalCode, companyCountry).Result;
+        return pricePerUnit + noOfUnits * pricePerDistanceUnit * distance;
     }
 
-    private async Task<double> CalculateDistance()
+    private async Task<double> CalculateDistance(string clientPostalCode, string clientCountry, string companyPostalCode, string companyCountry)
     {
                 using (var client = new TcpClient())
                 {
@@ -69,7 +94,7 @@ public class InstallationController : ControllerBase
                     using (var networkStream = client.GetStream())
                     {
                         //format: "Country1|PostalCode1|Country2|PostalCode2"
-                        string message = "Netherlands|3067|Denmark|8700";
+                        string message = $"{clientCountry}|{clientPostalCode}|{companyCountry}|{companyPostalCode}";
                         byte[] messageBytes = Encoding.UTF8.GetBytes(message);
                         
                         await networkStream.WriteAsync(messageBytes, 0, messageBytes.Length);
@@ -81,7 +106,7 @@ public class InstallationController : ControllerBase
         
                         Console.WriteLine("Response from server:");
                         Console.WriteLine(response);
-                        return Double.Parse(response);
+                        return Double.Parse(response.Substring(0, 7));
                     }
                 }
     }
