@@ -1,3 +1,4 @@
+using Entities.model.user;
 using Microsoft.EntityFrameworkCore;
 using GreenPortal.model;
 
@@ -5,6 +6,10 @@ namespace GreenPortal.repository
 {
     public class GreenPortalContext : DbContext
     {
+        public DbSet<Account> Accounts { get; set; }
+        public DbSet<Admin> Admins { get; set; }
+        public DbSet<Client> Clients { get; set; }
+        public DbSet<Company> Companies { get; set; }
         public DbSet<CompanyInstallation> companyinstallation { get; set; }
         public DbSet<CompanyInfo> companyinfo { get; set; }
 
@@ -15,11 +20,23 @@ namespace GreenPortal.repository
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Configure composite primary key for CompanyInstallation
+            modelBuilder.Entity<Account>()
+                .HasDiscriminator<string>("AccountType")
+                .HasValue<Admin>("Admin")
+                .HasValue<Client>("Client")
+                .HasValue<Company>("Company");
+
+            modelBuilder.Entity<Account>()
+                .HasKey(a => a.Email);
+
+            modelBuilder.Entity<Company>()
+                .HasOne<CompanyInfo>()
+                .WithMany()
+                .HasForeignKey(c => c.CompanyCode);
+            
             modelBuilder.Entity<CompanyInstallation>()
                 .HasKey(ci => new { ci.type, ci.company_code});
 
-            // Configure CompanyInfo with CompanyCode as the primary key
             modelBuilder.Entity<CompanyInfo>()
                 .HasKey(ci => ci.company_code);
         }

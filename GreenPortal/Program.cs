@@ -19,6 +19,7 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<GreenPortalContext>();
     context.Database.EnsureCreated();
+    SeedData.Initialize(context);
 }
 app.UseSwagger();
 app.UseSwaggerUI();
