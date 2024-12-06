@@ -27,13 +27,17 @@ namespace GreenPortal.repository
         public async Task<CompanyInstallation> GetInstallationByTypeAndCode(string type, string companyCode)
         {
             return await _context.companyinstallation
-                .FirstOrDefaultAsync(ci => ci.type == type && ci.company_code == companyCode);
+                .FirstOrDefaultAsync(ci => ci.type == type && ci.company_code == companyCode) ?? throw new InvalidOperationException();
         }
-
-        // Method to get all company info
+        
         public async Task<List<CompanyInfo>> GetAllCompanyInfo()
         {
             return await _context.companyinfo.ToListAsync();
+        }
+        
+        public async Task<CompanyInfo> GetCompanyInfo(string companyCode)
+        {
+            return await _context.companyinfo.FirstOrDefaultAsync(ci => ci.company_code == companyCode) ?? throw new InvalidOperationException();
         }
     }
 }

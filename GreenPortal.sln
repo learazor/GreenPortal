@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GreenPortal", "GreenPortal\GreenPortal.csproj", "{7025C5B6-25FB-4663-8C3D-D0DA5317F526}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Entities", "Entities\Entities.csproj", "{81BBC26A-62C3-416C-9B67-1E6C58567162}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{7025C5B6-25FB-4663-8C3D-D0DA5317F526}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7025C5B6-25FB-4663-8C3D-D0DA5317F526}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7025C5B6-25FB-4663-8C3D-D0DA5317F526}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81BBC26A-62C3-416C-9B67-1E6C58567162}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81BBC26A-62C3-416C-9B67-1E6C58567162}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81BBC26A-62C3-416C-9B67-1E6C58567162}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81BBC26A-62C3-416C-9B67-1E6C58567162}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

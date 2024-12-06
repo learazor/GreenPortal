@@ -2,7 +2,7 @@ namespace GreenPortal.model;
 
 public record ClientRequest(
     string Type,
-    double? Output = null,
+    double? MinOutput = null,
     string? Country = null,
     string? PostalCode = null,
     double? MaxPrice = null,
