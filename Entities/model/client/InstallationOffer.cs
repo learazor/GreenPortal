@@ -1,8 +1,10 @@
 namespace GreenPortal.model;
 
 public record InstallationOffer(
-    string companyCode,
-    double Price,
+    string CompanyCode,
+    double InstallationCost,
+    double TransportationCost,
+    double TotalCost,
     int Time,
     double Output
 );
