@@ -1,27 +1,39 @@
-using Entities.model.user;
-
 namespace GreenPortal.repository;
 
-using BCrypt.Net;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using Entities.model.user;
 
 public static class SeedData
 {
-    public static void Initialize(GreenPortalContext context)
+    public static void Initialize(IServiceProvider serviceProvider)
     {
-        // Ensure the database is created
-        context.Database.EnsureCreated();
+        using var scope = serviceProvider.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Account>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        // Seed Admin account
-        if (!context.Admins.Any())
+        // Ensure admin role exists
+        if (!roleManager.RoleExistsAsync("Admin").Result)
+        {
+            roleManager.CreateAsync(new IdentityRole("Admin")).Wait();
+        }
+
+        // Seed admin user
+        if (userManager.FindByEmailAsync("admin@greenportal.com").Result == null)
         {
             var admin = new Admin
             {
+                UserName = "admin@greenportal.com",
                 Email = "admin@greenportal.com",
-                Password = BCrypt.HashPassword("admin") // Hash the password
+                EmailConfirmed = true
             };
 
-            context.Admins.Add(admin);
-            context.SaveChanges();
+            var result = userManager.CreateAsync(admin, "Administrator12#").Result;
+            if (result.Succeeded)
+            {
+                userManager.AddToRoleAsync(admin, "Admin").Wait();
+            }
         }
     }
 }
+

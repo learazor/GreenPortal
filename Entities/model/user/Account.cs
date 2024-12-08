@@ -1,7 +1,9 @@
 namespace Entities.model.user;
 
-public abstract class Account
+using Microsoft.AspNetCore.Identity;
+
+
+public abstract class Account : IdentityUser
 {
-    public string Email { get; set; } = string.Empty; // Primary Key
-    public string Password { get; set; } = string.Empty; // Hashed password
+    public bool IsActive { get; set; } = true;
 }
