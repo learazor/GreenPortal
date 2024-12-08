@@ -1,9 +1,7 @@
-using System.Globalization;
 using System.Net.Sockets;
 using System.Text;
 using GreenPortal.model;
 using GreenPortal.repository;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
 
 namespace GreenPortal.controllers;
 
@@ -36,8 +34,6 @@ public class InstallationController : ControllerBase
             .Where(i => i.price_per_unit <= request.MaxPrice) //MaxPrice without transportation cost
             .Where(i => i.setting_up_time_per_unit <= request.MaxTime)
             .ToList();
-        
-        
 
         if (!companyInstallations.Count.Equals(0))
         {
@@ -52,18 +48,19 @@ public class InstallationController : ControllerBase
 
                 double? smallestUnitNumber =
                     new[] { maxUnitsInPriceRange, maxUnitsInTimeRange, unitsNeededForRequestedOutput }.Min();
-                
                 var noOfUnits = (int)Math.Floor((double)smallestUnitNumber); //For now picking just the smallest possible limit 
                 
-                var calculatedPrice = CalculatePrice(installation.price_per_unit, request.PostalCode,
+                var installationCost = noOfUnits * installation.price_per_unit;
+                var transportCost = CalculateTransportCost(request.PostalCode,
                     request.Country, companyInfo.postal_code, companyInfo.country, companyInfo.price_per_distance_unit,
                     noOfUnits);
-                var offer = new InstallationOffer(installation.company_code, calculatedPrice,
+                var totalCost = transportCost + installationCost;
+                
+                var offer = new InstallationOffer(installation.company_code, installationCost, transportCost, totalCost,
                     installation.setting_up_time_per_unit, installation.output);
                 
                 installationOffers.Add(offer);
             }
-            
             return Ok(installationOffers);
         }
         return NotFound("No installations found for the specified type.");
@@ -76,11 +73,11 @@ public class InstallationController : ControllerBase
         return Ok(companyInfoList);
     }
 
-    private double CalculatePrice(double pricePerUnit, string clientPostalCode, string clientCountry,
+    private double CalculateTransportCost(string clientPostalCode, string clientCountry,
         string companyPostalCode, string companyCountry, double pricePerDistanceUnit, double noOfUnits)
     {
         var distance = CalculateDistance(clientPostalCode, clientCountry, companyPostalCode, companyCountry).Result;
-        return pricePerUnit + noOfUnits * pricePerDistanceUnit * distance;
+        return noOfUnits * pricePerDistanceUnit * distance;
     }
 
     private async Task<double> CalculateDistance(string clientPostalCode, string clientCountry, string companyPostalCode, string companyCountry)
