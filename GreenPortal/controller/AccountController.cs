@@ -1,7 +1,10 @@
+using System.Security.Claims;
+using EfcRepositories;
 using Entities.model.dto.user;
 using Entities.model.user;
 using GreenPortal.model;
 using GreenPortal.repository;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -37,6 +40,17 @@ public class AccountController : ControllerBase
         {
             return Unauthorized("Invalid email or password.");
         }
+
+        // Add the AccountType as a claim
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(ClaimTypes.Name, user.UserName),
+            new Claim("AccountType", user.AccountType) // Add AccountType claim
+        };
+
+        var identity = new ClaimsIdentity(claims, "ApplicationCookie");
+        var principal = new ClaimsPrincipal(identity);
 
         await _signInManager.SignInAsync(user, isPersistent: false);
 

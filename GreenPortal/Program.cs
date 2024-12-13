@@ -1,3 +1,4 @@
+using EfcRepositories;
 using Entities.model.user;
 using GreenPortal.repository;
 using Microsoft.AspNetCore.Identity;
@@ -38,6 +39,22 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<CompanyRepository>();
+builder.Services.AddScoped<OrderRepository>();
+
+//session services
+builder.Services.AddDistributedMemoryCache(); //in-memory storage for sessions
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); //timeout
+    options.Cookie.HttpOnly = true; // Make the cookie HTTP-only
+    options.Cookie.IsEssential = true; // Ensure the cookie is always set
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ClientOnly", policy =>
+        policy.RequireClaim("AccountType", "Client"));
+});
 
 var app = builder.Build();
 // Seed initial data (e.g., admin user)
@@ -63,5 +80,6 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+app.UseSession();
 
 app.Run();

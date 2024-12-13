@@ -1,9 +1,10 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
+using Entities.model.portal;
 using Entities.model.user;
 using GreenPortal.model;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
-namespace GreenPortal.repository
+namespace EfcRepositories
 {
     public class GreenPortalContext : IdentityDbContext<Account>
     {
@@ -12,6 +13,8 @@ namespace GreenPortal.repository
         public DbSet<Company> Companies { get; set; }
         public DbSet<CompanyInstallation> companyinstallation { get; set; }
         public DbSet<CompanyInfo> companyinfo { get; set; }
+        public DbSet<InstallationOrder> InstallationOrders { get; set; }
+
 
         public GreenPortalContext(DbContextOptions<GreenPortalContext> options)
             : base(options)
