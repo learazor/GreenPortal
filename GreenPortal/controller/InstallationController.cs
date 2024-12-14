@@ -1,29 +1,47 @@
-using System.Net.Sockets;
-using System.Text;
+using EfcRepositories;
+using Entities.model.portal;
+using Entities.model.user;
 using GreenPortal.model;
 using GreenPortal.repository;
+using GreenPortal.session;
+using GreenPortal.util;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace GreenPortal.controllers;
 
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("portal")]
+[Route("installations")]
 public class InstallationController : ControllerBase
 {
-    
     private readonly CompanyRepository _repository;
+    private readonly UserManager<Account> _userManager;
 
-    public InstallationController(CompanyRepository repository)
+
+    public InstallationController(CompanyRepository repository, UserManager<Account> userManager)
     {
         _repository = repository;
+        _userManager = userManager;
     }
-    
-    [HttpPost("offer")]
-    public async Task<ActionResult<InstallationOffer>> PrepareInstallationOffers([FromBody] ClientRequest request)
-    {
-        var installations = await _repository.GetInstallationsByType(request.Type);
 
+    [HttpPost("offer")]
+    public async Task<ActionResult<InstallationOrder>> PrepareInstallationOffers([FromBody] ClientRequest request)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return Unauthorized("You must be logged in to access this endpoint.");
+        }
+
+        if (user.AccountType != "Client")
+        {
+            return Forbid("This endpoint is restricted to Client users only.");
+        }
+
+
+        var installations = await _repository.GetInstallationsByType(request.Type);
         if (installations == null || installations.Count == 0)
         {
             return NotFound("No installations found for the specified type.");
@@ -37,35 +55,47 @@ public class InstallationController : ControllerBase
 
         if (!companyInstallations.Count.Equals(0))
         {
-            List<InstallationOffer> installationOffers = new List<InstallationOffer>();
+            List<InstallationOrder> installationOffers = new List<InstallationOrder>();
             foreach (var installation in companyInstallations)
             {
                 var companyInfo = await _repository.GetCompanyInfo(installation.company_code);
 
-                var maxUnitsInPriceRange = request.MaxPrice/installation.price_per_unit;
-                var maxUnitsInTimeRange = request.MaxTime/installation.setting_up_time_per_unit;
-                var unitsNeededForRequestedOutput = request.MinOutput/installation.output;
+                var maxUnitsInPriceRange = request.MaxPrice / installation.price_per_unit;
+                var maxUnitsInTimeRange = request.MaxTime / installation.setting_up_time_per_unit;
+                var unitsNeededForRequestedOutput = request.MinOutput / installation.output;
 
                 double? smallestUnitNumber =
                     new[] { maxUnitsInPriceRange, maxUnitsInTimeRange, unitsNeededForRequestedOutput }.Min();
-                var noOfUnits = (int)Math.Floor((double)smallestUnitNumber); //For now picking just the smallest possible limit 
-                
+                var noOfUnits =
+                    (int)Math.Floor((double)smallestUnitNumber); //For now picking just the smallest possible limit 
+
                 var installationCost = noOfUnits * installation.price_per_unit;
                 var transportCost = CalculateTransportCost(request.PostalCode,
                     request.Country, companyInfo.postal_code, companyInfo.country, companyInfo.price_per_distance_unit,
                     noOfUnits);
                 var totalCost = transportCost + installationCost;
-                
-                var offer = new InstallationOffer(installation.company_code, installationCost, transportCost, totalCost,
-                    installation.setting_up_time_per_unit, installation.output);
-                
+
+                var offer = new InstallationOrder.Builder()
+                    .SetCompanyCode(installation.company_code)
+                    .SetInstallationCost(installationCost)
+                    .SetTransportationCost(transportCost)
+                    .SetTotalCost(totalCost)
+                    .SetTime(installation.setting_up_time_per_unit)
+                    .SetOutput(installation.output)
+                    .SetClientEmail(user.Email)
+                    .SetStatus(OrderStatus.OFFERED)
+                    .Build();
+
                 installationOffers.Add(offer);
             }
+
+            HttpContext.Session.SetObjectAsJson("Offers", installationOffers);
             return Ok(installationOffers);
         }
+
         return NotFound("No installations found for the specified type.");
     }
-    
+
     [HttpGet("companyinfo")]
     public async Task<ActionResult<List<CompanyInfo>>> GetAllCompanyInfo()
     {
@@ -76,35 +106,8 @@ public class InstallationController : ControllerBase
     private double CalculateTransportCost(string clientPostalCode, string clientCountry,
         string companyPostalCode, string companyCountry, double pricePerDistanceUnit, double noOfUnits)
     {
-        var distance = CalculateDistance(clientPostalCode, clientCountry, companyPostalCode, companyCountry).Result;
+        var distance = DistanceCalc
+            .CalculateDistance(clientPostalCode, clientCountry, companyPostalCode, companyCountry).Result;
         return noOfUnits * pricePerDistanceUnit * distance;
-    }
-
-    private async Task<double> CalculateDistance(string clientPostalCode, string clientCountry, string companyPostalCode, string companyCountry)
-    {
-                using (var client = new TcpClient())
-                {
-                    Console.WriteLine("Connecting to server...");
-                    await client.ConnectAsync("127.0.0.1", 5001);
-                    Console.WriteLine("Connected to server.");
-        
-                    using (var networkStream = client.GetStream())
-                    {
-                        //format: "Country1|PostalCode1|Country2|PostalCode2"
-                        string message = $"{clientCountry}|{clientPostalCode}|{companyCountry}|{companyPostalCode}";
-                        byte[] messageBytes = Encoding.UTF8.GetBytes(message);
-                        
-                        await networkStream.WriteAsync(messageBytes, 0, messageBytes.Length);
-                        Console.WriteLine("Message sent.");
-                        
-                        byte[] buffer = new byte[1024];
-                        int bytesRead = await networkStream.ReadAsync(buffer, 0, buffer.Length);
-                        string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-        
-                        Console.WriteLine("Response from server:");
-                        Console.WriteLine(response);
-                        return Double.Parse(response.Substring(0, 7));
-                    }
-                }
     }
 }
