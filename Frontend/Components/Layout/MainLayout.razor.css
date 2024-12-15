@@ -76,6 +76,19 @@ main {
     }
 }
 
+.logout-button {
+    background: none;
+    border: none;
+    color: #0078d4; /* Match your link color */
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 1rem;
+    padding: 0;
+}
+.logout-button:hover {
+    color: #005a9e; /* Link hover color */
+}
+
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;

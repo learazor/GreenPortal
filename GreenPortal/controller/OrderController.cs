@@ -63,6 +63,37 @@ public class OrderController : ControllerBase
     {
         return await ChangeStatus(installationOfferId, OrderStatus.CANCELED);
     }
+    
+    [HttpGet("company")]
+    public async Task<IActionResult> GetCompanyOrders()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (CheckUser(user, "Company", out var unauthorized)) return unauthorized;
+
+        var orders = await _orderRepository.GetOrdersByCompanyCodeAsync(user.CompanyCode);
+        return Ok(orders);
+    }
+    
+    [HttpGet("client")]
+    public async Task<IActionResult> GetClientOrders()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null || user.AccountType != "Client")
+        {
+            return Unauthorized("You must be logged in as a Client to access this endpoint.");
+        }
+
+        try
+        {
+            var orders = await _orderRepository.GetOrdersByClientEmail(user.Email);
+            return Ok(orders);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"An error occurred: {ex.Message}");
+        }
+    }
+
 
     private async Task<IActionResult> ChangeStatus(Guid installationOfferId, OrderStatus canceled)
     {

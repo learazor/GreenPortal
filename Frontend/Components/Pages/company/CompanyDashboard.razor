@@ -1,0 +1,21 @@
+@page "/company-dashboard"
+@using Frontend.service
+@using Frontend.service.navigation.company
+@inject NavigationManager NavigationManager
+@inject AuthService AuthService
+@inject CompanyNavi CompanyNavi
+@rendermode InteractiveServer
+
+<div class="navbar">
+    <button @onclick="CompanyNavi.GoToOrders">Orders</button>
+    <button @onclick="AuthService.HandleLogout">Logout</button>
+</div>
+
+<div class="dashboard-content">
+    <h1>Welcome, Company!</h1>
+    <p>This is the company dashboard.</p>
+</div>
+
+@code {
+
+}

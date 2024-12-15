@@ -1,0 +1,77 @@
+﻿@page "/"
+@layout EmptyLayout
+@using Entities.model.dto.user
+@using Frontend.Components.Layout
+@using Frontend.service.navigation.login
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+@inject LoginNavi LoginNavi
+@rendermode InteractiveServer
+
+<div class="navbar">
+    <button @onclick="LoginNavi.GoToCreateAccount">Create Account</button>
+</div>
+
+<div class="login-container">
+    <EditForm Model="@loginModel" OnValidSubmit="HandleLogin" FormName="loginForm">
+        <div class="form-group">
+            <label>Email:</label>
+            <InputText @bind-Value="loginModel.Email" class="form-control"/>
+        </div>
+        <div class="form-group">
+            <label>Password:</label>
+            <InputText type="password" @bind-Value="loginModel.Password" class="form-control"/>
+        </div>
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="alert alert-danger">@ErrorMessage</div>
+        }
+
+        <button type="submit" class="btn btn-primary">Login</button>
+    </EditForm>
+</div>
+
+@code {
+    
+    private LoginDto loginModel = new();
+    private string ErrorMessage;
+
+    private async Task HandleLogin()
+    {
+
+        var response = await HttpClient.PostAsJsonAsync("https://localhost:7066/accounts/login", loginModel);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var userType = response.Content.ReadAsStringAsync().Result.Split(":")[1];
+            if (userType.Contains("Client"))
+            {
+                NavigationManager.NavigateTo("/client-dashboard");
+            }
+            else if (userType.Contains("Admin"))
+            {
+                NavigationManager.NavigateTo("/admin-dashboard");
+            }
+            else if (userType.Contains("Company"))
+            {
+                NavigationManager.NavigateTo("/company-dashboard");
+            }
+            else
+            {
+                ErrorMessage = "Unknown user type.";
+            }
+        }
+        else
+        {
+            ErrorMessage = "Invalid login credentials.";
+        }
+    }
+
+
+    private void GoToCreateAccount()
+    {
+        throw new NotImplementedException();
+    }
+
+}

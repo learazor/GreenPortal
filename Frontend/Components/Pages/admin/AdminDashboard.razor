@@ -1,0 +1,18 @@
+@page "/admin-dashboard"
+@using Frontend.service
+@using Frontend.service.navigation.admin
+@inject AdminNavi AdminNavi
+@inject AuthService AuthService
+@rendermode InteractiveServer
+
+<div class="navbar">
+    <button @onclick="AdminNavi.GoToCreateCompany">Create Company Account</button>
+    <button @onclick="AuthService.HandleLogout">Logout</button>
+</div>
+
+<h1>Welcome, Admin!</h1>
+<p>This is the admin dashboard.</p>
+
+@code {
+    
+}

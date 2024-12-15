@@ -1,0 +1,70 @@
+@page "/create-client"
+@using Entities.model.dto.user
+@using Frontend.service.navigation.login
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject LoginNavi LoginNavi
+@rendermode InteractiveServer
+
+<div class="navbar">
+    <button @onclick="LoginNavi.GoToLogin">Login</button>
+</div>
+
+<h3>Create Client Account</h3>
+
+@if (!string.IsNullOrEmpty(SuccessMessage))
+{
+    <div class="alert alert-success">@SuccessMessage</div>
+}
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+
+<EditForm Model="@clientAccount" OnValidSubmit="HandleSubmit" FormName="createClientForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Email:</label>
+        <InputText @bind-Value="clientAccount.Email" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Password:</label>
+        <InputText @bind-Value="clientAccount.Password" type="password" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create Client</button>
+</EditForm>
+
+@code {
+    private CreateClientAccountDto clientAccount = new();
+    private string? SuccessMessage;
+    private string? ErrorMessage;
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            var response = await HttpClient.PostAsJsonAsync("https://localhost:7066/accounts/clients", clientAccount);
+
+            if (response.IsSuccessStatusCode)
+            {
+                SuccessMessage = "Client account created successfully.";
+                ErrorMessage = null;
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                SuccessMessage = null;
+                ErrorMessage = await response.Content.ReadAsStringAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            SuccessMessage = null;
+            ErrorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+}

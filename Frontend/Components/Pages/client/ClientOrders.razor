@@ -1,0 +1,70 @@
+@page "/client-orders"
+@using Frontend.service
+@using Frontend.service.navigation.client
+@using GreenPortal.model
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject AuthService AuthService
+@inject ClientNavi ClientNavi
+@rendermode InteractiveServer
+
+<div class="navbar">
+    <button @onclick="ClientNavi.GoToDashboard">Dashboard</button>
+    <button @onclick="ClientNavi.GoToInstallations">Installations</button>
+    <button @onclick="AuthService.HandleLogout">Logout</button>
+</div>
+
+<h3>Your Orders</h3>
+
+@if (orders == null)
+{
+    <p>Loading your orders...</p>
+}
+else if (orders.Count == 0)
+{
+    <p>You have no orders yet.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>Company</th>
+            <th>Installation Cost</th>
+            <th>Transportation Cost</th>
+            <th>Total Cost</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var order in orders)
+        {
+            <tr>
+                <td>@order.Guid</td>
+                <td>@order.CompanyCode</td>
+                <td>@order.InstallationCost</td>
+                <td>@order.TransportationCost</td>
+                <td>@order.TotalCost</td>
+                <td>@order.Status</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<InstallationOrder> orders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            orders = await HttpClient.GetFromJsonAsync<List<InstallationOrder>>("https://localhost:7066/orders/client");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to fetch orders: {ex.Message}");
+        }
+    }
+}
