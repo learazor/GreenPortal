@@ -1,0 +1,100 @@
+@page "/admin-create-company"
+@using Entities.model.dto.user
+@using Frontend.service
+@using Frontend.service.navigation.admin
+@inject HttpClient HttpClient
+@inject AdminNavi AdminNavi
+@inject AuthService AuthService
+@rendermode InteractiveServer
+
+<div class="navbar">
+    <button @onclick="AdminNavi.GoToDashboard">Create Company Account</button>
+    <button @onclick="AuthService.HandleLogout">Logout</button>
+</div>
+
+<h3>Create Company Account</h3>
+
+@if (successMessage != null)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+@if (errorMessage != null)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<EditForm Model="@companyAccount" OnValidSubmit="HandleSubmit" FormName="createCompanyForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Email:</label>
+        <InputText @bind-Value="companyAccount.Email" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Password:</label>
+        <InputText @bind-Value="companyAccount.Password" type="password" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Company Name:</label>
+        <InputText @bind-Value="companyAccount.CompanyName" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Contact Person:</label>
+        <InputText @bind-Value="companyAccount.ContactPerson" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Address:</label>
+        <InputText @bind-Value="companyAccount.Address" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Company Code:</label>
+        <InputText @bind-Value="companyAccount.CompanyCode" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Country:</label>
+        <InputText @bind-Value="companyAccount.Country" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Postal Code:</label>
+        <InputText @bind-Value="companyAccount.PostalCode" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Price Per Distance Unit:</label>
+        <InputNumber @bind-Value="companyAccount.PricePerDistanceUnit" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create Company</button>
+</EditForm>
+
+@code {
+    private CreateCompanyAccountDto companyAccount = new();
+    private string? successMessage;
+    private string? errorMessage;
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            var response = await HttpClient.PostAsJsonAsync("https://localhost:7066/accounts/companies", companyAccount);
+
+            if (response.IsSuccessStatusCode)
+            {
+                successMessage = "Company account created successfully.";
+                errorMessage = null;
+                companyAccount = new(); // Reset the form
+            }
+            else
+            {
+                successMessage = null;
+                errorMessage = await response.Content.ReadAsStringAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            successMessage = null;
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+}

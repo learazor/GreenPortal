@@ -1,0 +1,138 @@
+@page "/client-installations"
+@using Entities.model.dto.user
+@using Frontend.service
+@using Frontend.service.navigation.client
+@using GreenPortal.model
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+@inject AuthService AuthService
+@inject ClientNavi ClientNavi
+
+<div class="navbar">
+    <button @onclick="ClientNavi.GoToDashboard">Dashboard</button>
+    <button @onclick="ClientNavi.GoToOrders">Orders</button>
+    <button @onclick="AuthService.HandleLogout">Logout</button>
+</div>
+
+
+<h3>Search for Installations</h3>
+
+<EditForm Model="@clientRequest" OnValidSubmit="HandleSearch">
+    <div class="form-group">
+        <label>Installation Type:</label>
+        <InputText @bind-Value="clientRequest.Type" class="form-control"/>
+    </div>
+    <div class="form-group">
+        <label>Maximum Price:</label>
+        <InputNumber @bind-Value="clientRequest.MaxPrice" class="form-control"/>
+    </div>
+    <div class="form-group">
+        <label>Maximum Time (hours):</label>
+        <InputNumber @bind-Value="clientRequest.MaxTime" class="form-control"/>
+    </div>
+    <div class="form-group">
+        <label>Minimum Output:</label>
+        <InputNumber @bind-Value="clientRequest.MinOutput" class="form-control"/>
+    </div>
+    <div class="form-group">
+        <label>Postal Code:</label>
+        <InputText @bind-Value="clientRequest.PostalCode" class="form-control"/>
+    </div>
+    <div class="form-group">
+        <label>Country:</label>
+        <InputText @bind-Value="clientRequest.Country" class="form-control"/>
+    </div>
+    <button type="submit" class="btn btn-primary">Search</button>
+</EditForm>
+
+@if (installationOffers != null)
+{
+    <h3>Installation Offers</h3>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Company Code</th>
+            <th>Installation Cost</th>
+            <th>Transportation Cost</th>
+            <th>Total Cost</th>
+            <th>Time</th>
+            <th>Output</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var offer in installationOffers)
+        {
+            <tr>
+                <td>@offer.CompanyCode</td>
+                <td>@offer.InstallationCost</td>
+                <td>@offer.TransportationCost</td>
+                <td>@offer.TotalCost</td>
+                <td>@offer.Time</td>
+                <td>@offer.Output</td>
+                <td>
+                    <button class="btn btn-success" @onclick="(() => PlaceOrder(offer.Guid))">Order</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+
+@code {
+    private ClientRequestDto clientRequest = new();
+    private List<InstallationOrder>? installationOffers;
+    private string ErrorMessage = string.Empty;
+
+    private async Task HandleSearch()
+    {
+        try
+        {
+            var response = await HttpClient.PostAsJsonAsync("https://localhost:7066/installations/offer", clientRequest);
+
+            if (response.IsSuccessStatusCode)
+            {
+                installationOffers = await response.Content.ReadFromJsonAsync<List<InstallationOrder>>();
+                ErrorMessage = string.Empty;
+            }
+            else
+            {
+                ErrorMessage = "No installations found.";
+                installationOffers = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "An error occurred while searching for installations.";
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    private async Task PlaceOrder(Guid installationOfferId)
+    {
+        try
+        {
+            var response = await HttpClient.PostAsync($"https://localhost:7066/orders/create?installationOfferId={installationOfferId}", null);
+
+            if (response.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo("/orders");
+            }
+            else
+            {
+                ErrorMessage = "Failed to place the order.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "An error occurred while placing the order.";
+            Console.WriteLine(ex.Message);
+        }
+    }
+}

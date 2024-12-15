@@ -1,0 +1,18 @@
+@page "/client-dashboard"
+@using Frontend.service
+@using Frontend.service.navigation.client
+@inject AuthService AuthService
+@inject ClientNavi ClientNavi
+@rendermode InteractiveServer
+
+<div class="navbar">
+    <button @onclick="ClientNavi.GoToInstallations">Installations</button>
+    <button @onclick="ClientNavi.GoToOrders">Orders</button>
+    <button @onclick="AuthService.HandleLogout">Logout</button>
+</div>
+<h1>Welcome, Client!</h1>
+<p>This is the client dashboard.</p>
+
+@code {
+    
+}

@@ -1,0 +1,46 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+
+<div class="page">
+    @*CANNOT MAKE IT INTERACTIVE SO TURNED OFF*@
+    @*<div class="sidebar">
+        <NavMenu />
+    </div>*@
+
+    <main>
+        @*CANNOT MAKE IT INTERACTIVE SO TURNED OFF*@
+        @*<div class="top-row px-4">
+            <button class="btn btn-link logout-button" @onclick="HandleLogout">Logout</button>
+        </div>*@
+
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>
+
+@code {
+    private async Task HandleLogout()
+    {
+        try
+        {
+            // Call logout endpoint
+            await HttpClient.PostAsync("https://localhost:7066/accounts/logout", null);
+
+            // Navigate to the main page
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Logout failed: {ex.Message}");
+        }
+    }
+}

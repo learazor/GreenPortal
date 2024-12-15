@@ -1,5 +1,6 @@
 using Entities.model.portal;
 using GreenPortal.model;
+using Microsoft.EntityFrameworkCore;
 
 namespace EfcRepositories;
 
@@ -32,5 +33,18 @@ public class OrderRepository
                 await _context.SaveChangesAsync();
             }
         }
-        
+
+        public async Task<List<InstallationOrder>> GetOrdersByCompanyCodeAsync(string companyCode)
+        {
+            return await _context.InstallationOrders
+                .Where(order => order.CompanyCode == companyCode)
+                .ToListAsync();
+        }
+
+        public async Task<List<InstallationOrder>> GetOrdersByClientEmail(string? userEmail)
+        {
+            return await _context.InstallationOrders
+                .Where(order => order.ClientEmail == userEmail)
+                .ToListAsync();
+        }
 }

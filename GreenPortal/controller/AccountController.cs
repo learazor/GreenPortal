@@ -5,6 +5,7 @@ using Entities.model.user;
 using GreenPortal.model;
 using GreenPortal.repository;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -30,13 +31,8 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
         var user = await _userManager.FindByEmailAsync(loginDto.Email);
-        if (user == null)
-        {
-            return Unauthorized("Invalid email or password.");
-        }
-
         var passwordCheck = await _userManager.CheckPasswordAsync(user, loginDto.Password);
-        if (!passwordCheck)
+        if (user == null || !passwordCheck)
         {
             return Unauthorized("Invalid email or password.");
         }
@@ -54,12 +50,14 @@ public class AccountController : ControllerBase
 
         await _signInManager.SignInAsync(user, isPersistent: false);
 
-        return Ok("Login successful.");
+        return Ok("Login successful. Logged as: "+user.AccountType);
     }
 
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {
+        //await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        await HttpContext.SignOutAsync("Cookies");
         await _signInManager.SignOutAsync();
         return Ok("Logout successful.");
     }
