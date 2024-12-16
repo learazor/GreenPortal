@@ -34,8 +34,8 @@ public class Program
 //cookie-based authentication
         builder.Services.ConfigureApplicationCookie(options =>
         {
-            options.LoginPath = "/accounts/login"; // Redirect to this path if not authenticated
-            options.AccessDeniedPath = "/accounts/accessdenied"; // Redirect if access is denied
+            options.LoginPath = "/accounts/login";
+            options.AccessDeniedPath = "/accounts/accessdenied";
         });
 
         builder.Services.AddAuthentication("Cookies")
@@ -56,9 +56,9 @@ public class Program
         builder.Services.AddDistributedMemoryCache(); //in-memory storage for sessions
         builder.Services.AddSession(options =>
         {
-            options.IdleTimeout = TimeSpan.FromMinutes(30); //timeout
-            options.Cookie.HttpOnly = true; // Make the cookie HTTP-only
-            options.Cookie.IsEssential = true; // Ensure the cookie is always set
+            options.IdleTimeout = TimeSpan.FromMinutes(30);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
         });
 
         builder.Services.AddAuthorization(options =>

@@ -36,8 +36,7 @@ public class AccountController : ControllerBase
         {
             return Unauthorized("Invalid email or password.");
         }
-
-        // Add the AccountType as a claim
+        
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id),
@@ -65,24 +64,20 @@ public class AccountController : ControllerBase
     [HttpPost("clients")]
     public async Task<IActionResult> CreateClientAccount(CreateClientAccountDto dto)
     {
-        // Check if an account with the same email already exists
         if (await _userManager.FindByEmailAsync(dto.Email) != null)
         {
             return BadRequest("An account with this email already exists.");
         }
-
-        // Create a new Client account
+        
         var client = new Client
         {
             UserName = dto.Email,
             Email = dto.Email,
             PhoneNumber = dto.PhoneNumber,
         };
-
-        // Create the account with the specified password
+        
         var result = await _userManager.CreateAsync(client, dto.Password);
-
-        // Handle potential errors during user creation
+        
         if (!result.Succeeded)
         {
             return BadRequest(result.Errors);
@@ -98,20 +93,18 @@ public class AccountController : ControllerBase
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            // Check if an account with the same email already exists
             if (await _userManager.FindByEmailAsync(dto.Email) != null)
             {
                 return BadRequest("An account with this email already exists.");
             }
-
-            // Check if the CompanyCode already exists in companyinfo
+            
             var existingCompanyInfo = await _context.companyinfo.FindAsync(dto.CompanyCode);
             if (existingCompanyInfo != null)
             {
                 return BadRequest($"CompanyCode '{dto.CompanyCode}' already exists in companyinfo.");
             }
 
-            // Create the companyinfo entry
+            //entry creation in companyinfo
             var companyInfo = new CompanyInfo
             {
                 company_code = dto.CompanyCode,
@@ -123,7 +116,7 @@ public class AccountController : ControllerBase
             await _context.companyinfo.AddAsync(companyInfo);
             await _context.SaveChangesAsync();
 
-            // Create the account in AspNetUsers
+            //account creation in AspNetUsers
             var company = new Company
             {
                 UserName = dto.Email,
@@ -131,26 +124,26 @@ public class AccountController : ControllerBase
                 CompanyName = dto.CompanyName,
                 ContactPerson = dto.ContactPerson,
                 Address = dto.Address,
-                CompanyCode = dto.CompanyCode, // Link to the companyinfo table
-                EmailConfirmed = true // Optional: Auto-confirm email
+                CompanyCode = dto.CompanyCode,
+                EmailConfirmed = true
             };
 
             var result = await _userManager.CreateAsync(company, dto.Password);
             if (!result.Succeeded)
             {
-                // Rollback transaction in case of failure
+                //in case of failure rollback
                 await transaction.RollbackAsync();
                 return BadRequest(result.Errors);
             }
 
-            // Commit transaction after both operations succeed
+            //transaction commit after both operations succeed
             await transaction.CommitAsync();
 
             return Ok("Company account created successfully.");
         }
         catch (Exception ex)
         {
-            // Rollback transaction in case of exceptions
+            //transaction rollback in case of exceptions
             await transaction.RollbackAsync();
             return StatusCode(500, $"An error occurred: {ex.Message}");
         }
