@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EfcRepositories", "EfcRepos
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Frontend", "Frontend\Frontend.csproj", "{86B5F7A2-DDAC-43DD-84F2-6CCE90765710}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{71EE2F98-B957-47BF-8D0F-EE9D4CD774D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,5 +33,9 @@ Global
 		{86B5F7A2-DDAC-43DD-84F2-6CCE90765710}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86B5F7A2-DDAC-43DD-84F2-6CCE90765710}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86B5F7A2-DDAC-43DD-84F2-6CCE90765710}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71EE2F98-B957-47BF-8D0F-EE9D4CD774D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71EE2F98-B957-47BF-8D0F-EE9D4CD774D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71EE2F98-B957-47BF-8D0F-EE9D4CD774D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71EE2F98-B957-47BF-8D0F-EE9D4CD774D8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
