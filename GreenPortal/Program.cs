@@ -14,7 +14,7 @@ public class Program
 //db connection config
         builder.Services.AddDbContext<GreenPortalContext>(options =>
             options.UseNpgsql(
-                "Host=abstractly-awake-ouzel.data-1.euc1.tembo.io;Database=postgres;Username=postgres;Password=AQm5ISoHY3fjnw67;Port=5432"));
+                "Host=abstractly-awake-ouzel.data-1.euc1.tembo.io;Database=postgres;Username=postgres;Password=AQm5ISoHY3fjnw67;Port=5432;Ssl Mode=Require;Trust Server Certificate=true"));
         
 //identity services
         builder.Services.AddIdentity<Account, IdentityRole>()
