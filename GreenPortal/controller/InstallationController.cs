@@ -47,11 +47,22 @@ public class InstallationController : ControllerBase
             return NotFound("No installations found for the specified type.");
         }
 
-        List<CompanyInstallation> companyInstallations = installations
-            .Where(i => i.type == request.Type)
-            .Where(i => i.price_per_unit <= request.MaxPrice) //MaxPrice without transportation cost
-            .Where(i => i.setting_up_time_per_unit <= request.MaxTime)
-            .ToList();
+        List<CompanyInstallation> companyInstallations;
+        
+        if (request.MaxPrice==null && request.MaxTime==null)
+        {
+            companyInstallations = installations
+                .Where(i => i.type == request.Type).ToList();
+        }
+        else
+        {
+            companyInstallations = installations
+                .Where(i => i.type == request.Type)
+                .Where(i => i.price_per_unit <= request.MaxPrice) //MaxPrice without transportation cost
+                .Where(i => i.setting_up_time_per_unit <= request.MaxTime)
+                .ToList();
+        }
+        
 
         if (!companyInstallations.Count.Equals(0))
         {
@@ -66,8 +77,16 @@ public class InstallationController : ControllerBase
 
                 double? smallestUnitNumber =
                     new[] { maxUnitsInPriceRange, maxUnitsInTimeRange, unitsNeededForRequestedOutput }.Min();
-                //For now picking just the smallest possible limit 
-                double noOfUnits = smallestUnitNumber<1 ? 1 : (int)Math.Floor((double)smallestUnitNumber);
+                //For now picking just the smallest possible limit or 1
+                double noOfUnits;
+                if (request.MaxPrice == null && request.MaxTime == null && request.MinOutput == null)
+                {
+                    noOfUnits = 1;
+                }
+                else
+                {
+                    noOfUnits = smallestUnitNumber<1 ? 1 : (int)Math.Floor((double)smallestUnitNumber);
+                }
 
                 var installationCost = noOfUnits * installation.price_per_unit;
                 var transportCost = Math.Round(CalculateTransportCost(request.PostalCode, request.Country,
