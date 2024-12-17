@@ -16,9 +16,9 @@ public class OrderController : ControllerBase
 {
     private readonly OrderRepository _orderRepository;
     private readonly CompanyRepository _companyRepository;
-    private readonly UserManager<Account> _userManager;
+    private readonly UserManager<User> _userManager;
     
-    public OrderController(OrderRepository orderRepository, UserManager<Account> userManager, CompanyRepository companyRepository)
+    public OrderController(OrderRepository orderRepository, UserManager<User> userManager, CompanyRepository companyRepository)
     {
         _orderRepository = orderRepository;
         _userManager = userManager;
@@ -70,8 +70,13 @@ public class OrderController : ControllerBase
         var user = await _userManager.GetUserAsync(User);
         if (CheckUser(user, "Company", out var unauthorized)) return unauthorized;
 
-        var orders = await _orderRepository.GetOrdersByCompanyCodeAsync(user.CompanyCode);
-        return Ok(orders);
+        if (user is CompanyUser companyUser)
+        {
+            var orders = await _orderRepository.GetOrdersByCompanyCodeAsync(companyUser.CompanyCode);
+            return Ok(orders);
+        }
+
+        return Forbid("You are not authorized to view company orders.");
     }
     
     [HttpGet("client")]
@@ -112,7 +117,7 @@ public class OrderController : ControllerBase
         });
     }
 
-    private bool CheckUser(Account? user, string type, out IActionResult unauthorized)
+    private bool CheckUser(User? user, string type, out IActionResult unauthorized)
     {
         if (user == null || user.AccountType != type )
         {
@@ -123,10 +128,16 @@ public class OrderController : ControllerBase
         return false;
     }
 
-    private bool CheckCompany(Guid installationOfferId, Account? user, out IActionResult acceptOrder)
+    private bool CheckCompany(Guid installationOfferId, User? user, out IActionResult acceptOrder)
     {
         var order = _orderRepository.GetOrderByIdAsync(installationOfferId);
-        if (order.Result?.CompanyCode != user?.CompanyCode)
+        if (user is not CompanyUser companyUser)
+        {
+            acceptOrder = Forbid("Only company users can perform this action.");
+            return true;
+        }
+        
+        if (order.Result?.CompanyCode != companyUser.CompanyCode)
         {
             acceptOrder = Forbid("You cannot accept an order that belongs to another company.");
             return true;

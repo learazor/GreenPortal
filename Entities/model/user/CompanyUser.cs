@@ -1,6 +1,6 @@
 namespace Entities.model.user;
 
-public class Company : Account
+public class CompanyUser : User
 {
     public string CompanyName { get; set; } = string.Empty;
     public string ContactPerson { get; set; } = string.Empty;

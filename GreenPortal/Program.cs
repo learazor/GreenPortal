@@ -17,7 +17,7 @@ public class Program
                 "Host=abstractly-awake-ouzel.data-1.euc1.tembo.io;Database=postgres;Username=postgres;Password=AQm5ISoHY3fjnw67;Port=5432;Ssl Mode=Require;Trust Server Certificate=true"));
         
 //identity services
-        builder.Services.AddIdentity<Account, IdentityRole>()
+        builder.Services.AddIdentity<User, IdentityRole>()
             .AddEntityFrameworkStores<GreenPortalContext>()
             .AddDefaultTokenProviders();
 

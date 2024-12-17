@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EfcRepositories
 {
-    public class GreenPortalContext : IdentityDbContext<Account>
+    public class GreenPortalContext : IdentityDbContext<User>
     {
-        public DbSet<Admin> Admins { get; set; }
-        public DbSet<Client> Clients { get; set; }
-        public DbSet<Company> Companies { get; set; }
+        public DbSet<AdminUser> Admins { get; set; }
+        public DbSet<ClientUser> Clients { get; set; }
+        public DbSet<CompanyUser> Companies { get; set; }
         public DbSet<CompanyInstallation> companyinstallation { get; set; }
         public DbSet<CompanyInfo> companyinfo { get; set; }
         public DbSet<InstallationOrder> InstallationOrders { get; set; }
@@ -26,14 +26,14 @@ namespace EfcRepositories
             base.OnModelCreating(modelBuilder);
 
             // Configure TPH inheritance for Account
-            modelBuilder.Entity<Account>()
+            modelBuilder.Entity<User>()
                 .HasDiscriminator<string>("AccountType")
-                .HasValue<Admin>("Admin")
-                .HasValue<Client>("Client")
-                .HasValue<Company>("Company");
+                .HasValue<AdminUser>("Admin")
+                .HasValue<ClientUser>("Client")
+                .HasValue<CompanyUser>("Company");
 
             // Company relationship with CompanyInfo via CompanyCode
-            modelBuilder.Entity<Company>()
+            modelBuilder.Entity<CompanyUser>()
                 .HasOne<CompanyInfo>()
                 .WithMany()
                 .HasForeignKey(c => c.CompanyCode)

@@ -9,7 +9,7 @@ public static class SeedData
     public static void Initialize(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Account>>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
         // Ensure admin role exists
@@ -21,7 +21,7 @@ public static class SeedData
         // Seed admin user
         if (userManager.FindByEmailAsync("admin@greenportal.com").Result == null)
         {
-            var admin = new Admin
+            var admin = new AdminUser
             {
                 UserName = "admin@greenportal.com",
                 Email = "admin@greenportal.com",

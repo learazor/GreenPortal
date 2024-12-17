@@ -16,11 +16,11 @@ namespace GreenPortal.controllers;
 [Route("accounts")]
 public class AccountController : ControllerBase
 {
-    private readonly UserManager<Account> _userManager;
-    private readonly SignInManager<Account> _signInManager;
+    private readonly UserManager<User> _userManager;
+    private readonly SignInManager<User> _signInManager;
     private readonly GreenPortalContext _context;
 
-    public AccountController(UserManager<Account> userManager, SignInManager<Account> signInManager, GreenPortalContext context)
+    public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, GreenPortalContext context)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -69,7 +69,7 @@ public class AccountController : ControllerBase
             return BadRequest("An account with this email already exists.");
         }
         
-        var client = new Client
+        var client = new ClientUser
         {
             UserName = dto.Email,
             Email = dto.Email,
@@ -117,7 +117,7 @@ public class AccountController : ControllerBase
             await _context.SaveChangesAsync();
 
             //account creation in AspNetUsers
-            var company = new Company
+            var company = new CompanyUser
             {
                 UserName = dto.Email,
                 Email = dto.Email,
@@ -127,7 +127,6 @@ public class AccountController : ControllerBase
                 CompanyCode = dto.CompanyCode,
                 EmailConfirmed = true
             };
-
             var result = await _userManager.CreateAsync(company, dto.Password);
             if (!result.Succeeded)
             {

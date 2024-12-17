@@ -17,10 +17,10 @@ using Microsoft.AspNetCore.Mvc;
 public class InstallationController : ControllerBase
 {
     private readonly CompanyRepository _repository;
-    private readonly UserManager<Account> _userManager;
+    private readonly UserManager<User> _userManager;
 
 
-    public InstallationController(CompanyRepository repository, UserManager<Account> userManager)
+    public InstallationController(CompanyRepository repository, UserManager<User> userManager)
     {
         _repository = repository;
         _userManager = userManager;
