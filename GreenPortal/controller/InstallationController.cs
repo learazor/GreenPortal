@@ -91,7 +91,7 @@ public class InstallationController : ControllerBase
                 var installationCost = noOfUnits * installation.price_per_unit;
                 var transportCost = Math.Round(CalculateTransportCost(request.PostalCode, request.Country,
                     companyInfo.postal_code, companyInfo.country, companyInfo.price_per_distance_unit,
-                    noOfUnits), 2);
+                    noOfUnits)/10, 2);
                 var totalCost = transportCost + installationCost;
 
                 var offer = new InstallationOrder.Builder()
